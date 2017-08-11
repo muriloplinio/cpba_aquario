@@ -2,50 +2,50 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <Servo.h> 
 
-const char* ssid = "bea";
-const char* password = "Rdvs,150@";
+const char* ssid = "unifacs";
+const char* password = "vivaauniversidade";
 
 ESP8266WebServer server(80);
-
-void hello_campus() {
-  server.send(200, "text/plain", "Hello CampusParty!");
-}
+Servo myservo;
 
 void setup(void){
 
   Serial.begin(115200);
   
   WiFi.begin(ssid, password);
-  Serial.println("");
 
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+  
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("esp8266")) {
-    Serial.println("MDNS responder started");
-  }
-  server.on("/", hello_campus);
-  
+  server.on("/", [](){    
+    server.send(200, "text/plain", "Hello Campus Party!!");
+  });
 
   server.on("/feeder", [](){
-
-    
-    server.send(200, "text/plain", "Alimentou");
+    myservo.write(180);
+    delay(1000);
+    myservo.write(85);
+    server.send(200, "text/plain", "Peixe Feeliiiizzz! :)");
   });
   
 
   server.onNotFound(handleNotFound);
   server.begin();
   Serial.println("HTTP server started");
+  
+  myservo.attach(D2);
+  
 }
 
 void loop(void){
@@ -53,16 +53,6 @@ void loop(void){
 }
 
 void handleNotFound(){
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET)?"GET":"POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i=0; i<server.args(); i++){
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  server.send(404, "text/plain", message);
+  server.send(200, "text/plain", "Tente /feeder");
 }
+
